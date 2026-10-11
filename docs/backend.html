@@ -1,0 +1,715 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Velora Backend</title>
+<style>
+  :root{
+    color-scheme: light;
+    --page:#eae6d8; --cream:#f7f4ea; --ink:#1a1a1a; --ink-dim:#55534a;
+    --yellow:#f5d444; --blue-fill:#cfe0ee; --blue-line:#2c5f8a;
+    --green-fill:#d3ead9; --green-line:#2f7a4f;
+    --orange-fill:#f5d3b8; --orange-line:#c1652e;
+    --red-fill:#f3c9c9; --red-line:#b33a3a;
+    --navy:#1d3a5f; --code-bg:#1d2733; --code-ink:#e8eef4; --code-dim:#93a8bb;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+    --sans:Arial,Helvetica,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{background:var(--page)}
+  body{margin:0;padding-inline:16px;padding-block:18px;font-family:var(--mono);color:var(--ink)}
+  .poster{max-width:1600px;margin:0 auto;background:var(--cream);border:3px solid var(--ink);border-radius:6px;padding-inline:clamp(14px,3vw,40px);padding-block:28px 36px}
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+  .legend{border:2px solid var(--ink);border-radius:6px;background:#fff;padding:10px 16px;font-size:12.5px;line-height:1.9}
+  .legend div{display:flex;align-items:center;gap:8px}
+  .dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto}
+  .dot.blue{background:var(--blue-line)} .dot.green{background:var(--green-line)} .dot.orange{background:var(--orange-line)} .dot.red{background:var(--red-line)}
+  .badge{background:var(--navy);color:#fff;border-radius:6px;padding:10px 16px;font-size:12px;font-weight:700;text-align:center;line-height:1.5;letter-spacing:.03em}
+  h1{font-family:var(--sans);font-size:clamp(34px,6vw,54px);text-align:center;margin:10px 0 4px;letter-spacing:-.01em;color:var(--ink)}
+  .subtitle{text-align:center;color:var(--ink-dim);font-size:14px;max-width:1000px;margin:0 auto 22px;line-height:1.6;text-wrap:balance}
+  .toc{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:0 0 22px}
+  .toc a{font-size:12px;color:var(--ink);text-decoration:none;border:1.5px solid var(--ink);background:#fff;border-radius:3px;padding:4px 8px}
+  .toc a:hover,.toc a:focus-visible{background:var(--yellow);outline:none}
+  .section{border:2px solid var(--ink);border-radius:4px;margin-bottom:22px;overflow:hidden;background:var(--cream);scroll-margin-top:10px}
+  .sechead{background:var(--yellow);border-bottom:2px solid var(--ink);padding:11px 14px;font-weight:700;font-size:15px;text-align:center;font-family:var(--sans)}
+  .secintro{padding:14px 22px 2px;color:var(--ink-dim);font-size:13px;text-align:center;line-height:1.7;max-width:1200px;margin:0 auto}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:12px;padding:16px}
+  .grid.g2{grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr))}
+  .grid.g3{grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))}
+  .box{border:1.5px solid var(--ink);padding:12px 14px;border-radius:3px;text-align:center;background:#fff}
+  .box.blue{background:var(--blue-fill);border-color:var(--blue-line)}
+  .box.green{background:var(--green-fill);border-color:var(--green-line)}
+  .box.orange{background:var(--orange-fill);border-color:var(--orange-line)}
+  .box.red{background:var(--red-fill);border-color:var(--red-line)}
+  .box b{display:block;font-size:13.5px;margin-bottom:4px;color:var(--ink)}
+  .box span{display:block;font-size:11.5px;color:var(--ink-dim);line-height:1.5}
+  .box ul{margin:6px 0 0;padding-left:16px;text-align:left;font-size:11.5px;color:var(--ink-dim);line-height:1.6}
+  .note{margin:0 16px 16px;border:2px solid var(--ink);border-radius:4px;background:#fff;padding:12px 16px;font-size:12.5px;line-height:1.7;color:var(--ink)}
+  .subnotes{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:8px;padding:0 16px 16px}
+  .subnote{border:1.5px solid #bdb69c;border-radius:3px;background:#f0ece0;padding:9px 12px;font-size:11.5px;font-style:italic;color:#4a463a;text-align:center;line-height:1.5}
+  .split{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:12px;padding:16px}
+  .split > *{min-width:0}
+  pre.code{margin:0;overflow-x:auto;background:var(--code-bg);color:var(--code-ink);border:2px solid var(--ink);border-radius:4px;padding:12px 14px;font-size:12px;line-height:1.55}
+  pre.code .c{color:var(--code-dim)}
+  .pad{padding:16px}
+  .tw{overflow-x:auto;border:2px solid var(--ink);border-radius:4px;background:#fff}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:640px;color:var(--ink)}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid #d6d1bf;vertical-align:top;line-height:1.5}
+  th{background:#f0ece0;font-size:11.5px;letter-spacing:.03em;text-transform:uppercase;color:var(--ink-dim)}
+  tbody tr:last-child td{border-bottom:0}
+  td.p{white-space:nowrap;font-weight:700}
+  .pill{display:inline-block;border:1.5px solid;border-radius:3px;padding:0 6px;font-size:11px;font-weight:700}
+  .pill.pub{background:#fff;border-color:#8a8676}
+  .pill.pat{background:var(--orange-fill);border-color:var(--orange-line)}
+  .pill.ph{background:var(--blue-fill);border-color:var(--blue-line)}
+  .pill.ad{background:var(--red-fill);border-color:var(--red-line)}
+  code{font-family:var(--mono);font-size:.95em;background:#efe9d6;border:1px solid #d6d1bf;border-radius:3px;padding:0 4px}
+  pre.code code{background:none;border:0;padding:0;font-size:inherit}
+  footer{margin-top:24px;padding-top:16px;border-top:2px solid var(--ink);text-align:center;font-size:12.5px;font-style:italic;color:var(--ink-dim);line-height:1.9}
+  @media(max-width:640px){.topbar{flex-direction:column}}
+  .sechead .wk{display:inline-block;margin-left:10px;font-family:var(--mono);font-size:11px;font-weight:700;background:#fff;border:1.5px solid var(--ink);border-radius:3px;padding:1px 7px;vertical-align:2px}
+  .box em{display:block;margin-top:6px;font-style:normal;font-size:10.5px;font-weight:700;letter-spacing:.04em;color:var(--ink)}
+  .split.stack{grid-template-columns:1fr}
+  .split.stack .grid.g2{grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr))}
+</style>
+</head>
+<body>
+
+<div class="poster">
+
+  <div class="topbar">
+    <div class="legend">
+      <div><span class="dot blue"></span> Application code you write: routes, controllers, services</div>
+      <div><span class="dot green"></span> Data: Prisma, PostgreSQL, MongoDB</div>
+      <div><span class="dot orange"></span> Entry and security boundary: middleware, auth</div>
+      <div><span class="dot red"></span> Correctness-critical: gets it wrong once, it's bad</div>
+    </div>
+    <div class="badge">VELORA<br>BACKEND ARCHITECTURE<br>CSA213 + CSA214 · SEM 3</div>
+  </div>
+
+  <h1>Backend</h1>
+  <p class="subtitle">the Express + TypeScript API, Prisma, PostgreSQL and MongoDB behind Velora: every section is tagged with the Advanced Programming (AP) or Data Engineering (DE) week it comes from, and nothing here goes past what this semester teaches</p>
+
+  <nav class="toc" aria-label="Sections">
+    <a href="#b1">1 Stack</a><a href="#b2">2 Folders</a><a href="#b3">3 Middleware</a><a href="#b4">4 Routes</a>
+    <a href="#b5">5 Auth + RBAC</a><a href="#b6">6 Services</a><a href="#b7">7 Prisma</a><a href="#b8">8 Schema</a>
+    <a href="#b9">9 Advanced SQL</a><a href="#b10">10 Hold transaction</a><a href="#b11">11 Indexing</a><a href="#b12">12 MongoDB</a>
+    <a href="#b13">13 Errors</a><a href="#b14">14 Event loop</a><a href="#b15">15 TS + OOP</a><a href="#b16">16 Deploy</a><a href="#b17">17 Demo checks</a>
+  </nav>
+
+  <!-- 1 -->
+  <div class="section" id="b1">
+    <div class="sechead">1 · Stack: one tool per syllabus topic <span class="wk">AP 1&ndash;12 · DE 1&ndash;12</span></div>
+    <p class="secintro">A modular monolith: one Express app, split into modules by domain. No Redis, no queue, no PostGIS, no microservices, because none of them are taught this semester.</p>
+    <div class="grid">
+      <div class="box blue"><b>Node.js + Express</b><span>HTTP server, routing, middleware</span><em>AP wk 1&ndash;4</em></div>
+      <div class="box blue"><b>TypeScript</b><span>typed requests, services as classes</span><em>AP wk 11</em></div>
+      <div class="box green"><b>Prisma ORM</b><span>models, relations, migrations, seed, transactions</span><em>AP wk 5&ndash;7</em></div>
+      <div class="box orange"><b>jsonwebtoken + bcrypt</b><span>access + refresh tokens, password hashing, RBAC</span><em>AP wk 8&ndash;9</em></div>
+      <div class="box green"><b>PostgreSQL</b><span>source of truth: SQL, joins, views, CTEs, ACID, indexes</span><em>DE wk 1&ndash;9</em></div>
+      <div class="box green"><b>MongoDB</b><span>read copy for search: CRUD, $set/$inc, aggregation</span><em>DE wk 10&ndash;12</em></div>
+    </div>
+    <div class="note"><b>The one rule:</b> PostgreSQL decides, MongoDB copies. Every write and every final "is it really in stock" check goes to PostgreSQL. MongoDB is only read by search, and it can always be rebuilt from PostgreSQL.</div>
+  </div>
+
+  <!-- 2 -->
+  <div class="section" id="b2">
+    <div class="sechead">2 · Folder structure: MVC-style layers <span class="wk">AP wk 5</span></div>
+    <p class="secintro">Week 5's activity is "refactoring an Express project as per best practices". This is that structure: each layer may only call the one below it.</p>
+    <div class="split">
+<pre class="code"><code>server/
+├─ prisma/
+│  ├─ schema.prisma        <span class="c">9 models, enums, @@unique, @@index</span>
+│  ├─ migrations/          <span class="c">generated by prisma migrate dev</span>
+│  └─ seed.ts              <span class="c">fs.promises → createMany → insertMany</span>
+├─ data/                   <span class="c">medicines.json pharmacies.json areas.json</span>
+└─ src/
+   ├─ server.ts            <span class="c">connect Mongo, app.listen(PORT)</span>
+   ├─ app.ts               <span class="c">middleware order + routers (§3)</span>
+   ├─ config/env.ts        <span class="c">reads process.env once, fails fast</span>
+   ├─ routes/              <span class="c">auth search holds pharmacies admin</span>
+   ├─ controllers/         <span class="c">one per route file</span>
+   ├─ services/            <span class="c">AuthService SearchService HoldService</span>
+   │                       <span class="c">StockService PharmacyService AdminService</span>
+   ├─ middlewares/         <span class="c">authenticate authorize validate</span>
+   │                       <span class="c">notFound errorHandler</span>
+   ├─ validators/          <span class="c">body/params schema per route</span>
+   ├─ db/                  <span class="c">prisma.ts (one client), mongo.ts</span>
+   ├─ types/express.d.ts   <span class="c">adds req.user { id, role }</span>
+   └─ utils/               <span class="c">AppError asyncHandler jwt hash geo</span></code></pre>
+      <div class="grid g2" style="padding:0">
+        <div class="box blue"><b>routes/</b><span>path + middleware list only; no logic</span></div>
+        <div class="box blue"><b>controllers/</b><span>read req, call one service method, send res; never import Prisma</span></div>
+        <div class="box blue"><b>services/</b><span>business rules; every DB call and every transaction lives here</span></div>
+        <div class="box green"><b>db/</b><span>one PrismaClient and one Mongo connection for the whole app</span></div>
+        <div class="box orange"><b>middlewares/</b><span>cross-cutting checks that run before controllers</span></div>
+        <div class="box red"><b>utils/AppError</b><span>the only way a layer reports a known failure</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3 -->
+  <div class="section" id="b3">
+    <div class="sechead">3 · Request path: middleware in the order it runs <span class="wk">AP wk 3&ndash;4</span></div>
+    <p class="secintro">Week 4 covers built-in, user-created and third-party middleware. Velora uses all three kinds, and the order matters: the error handler must be last.</p>
+    <div class="grid">
+      <div class="box orange"><b>1 · express.json()</b><span>built-in: parses JSON bodies, limit 100 kb</span></div>
+      <div class="box orange"><b>2 · cookieParser()</b><span>third-party: reads the refresh cookie</span></div>
+      <div class="box orange"><b>3 · morgan('dev')</b><span>third-party: logs method, path, status, time</span></div>
+      <div class="box blue"><b>4 · /api/v1 routers</b><span>versioned paths (wk 4)</span></div>
+      <div class="box orange"><b>5 · per-route chain</b><span>authenticate → authorize → validate → controller</span></div>
+      <div class="box red"><b>6 · notFound + errorHandler</b><span>user-created, registered last</span></div>
+    </div>
+<pre class="code" style="margin:0 16px 16px"><code><span class="c">// src/app.ts</span>
+const app = express();
+app.use(express.json({ limit: '100kb' }));
+app.use(cookieParser());
+app.use(morgan(env.NODE_ENV === 'production' ? 'combined' : 'dev'));
+
+app.use('/api/v1/auth',       authRoutes);
+app.use('/api/v1/search',     searchRoutes);
+app.use('/api/v1/holds',      holdRoutes);
+app.use('/api/v1/pharmacies', pharmacyRoutes);
+app.use('/api/v1/admin',      adminRoutes);
+
+app.use(notFound);        <span class="c">// AppError(404) for any unknown path</span>
+app.use(errorHandler);    <span class="c">// (err, req, res, next): four arguments, always last</span>
+
+<span class="c">// src/routes/holds.routes.ts</span>
+router.post('/',          authenticate, authorize('PATIENT'), validate(placeHold), asyncHandler(ctrl.create));
+router.get('/me',         authenticate, authorize('PATIENT'),                     asyncHandler(ctrl.mine));
+router.patch('/:id/cancel', authenticate, authorize('PATIENT'), validate(idParam), asyncHandler(ctrl.cancel));</code></pre>
+  </div>
+
+  <!-- 4 -->
+  <div class="section" id="b4">
+    <div class="sechead">4 · Route map: all 30 endpoints under /api/v1 <span class="wk">AP wk 1, 4</span></div>
+    <p class="secintro">REST resources with the right HTTP method and status code for each action (week 1: methods and status codes). Lists take <code>?page</code> and <code>?limit</code> (default 20, max 50).</p>
+    <div class="pad">
+      <div class="tw">
+        <table>
+          <thead><tr><th>Method + path</th><th>Who</th><th>Service method</th><th>OK</th><th>Errors</th></tr></thead>
+          <tbody>
+            <tr><td class="p">POST /auth/register</td><td><span class="pill pub">public</span></td><td>AuthService.register</td><td>201</td><td>400, 409</td></tr>
+            <tr><td class="p">POST /auth/login</td><td><span class="pill pub">public</span></td><td>AuthService.login</td><td>200</td><td>400, 401</td></tr>
+            <tr><td class="p">POST /auth/refresh</td><td><span class="pill pub">cookie</span></td><td>AuthService.refresh</td><td>200</td><td>401</td></tr>
+            <tr><td class="p">POST /auth/logout</td><td><span class="pill pub">cookie</span></td><td>AuthService.logout</td><td>204</td><td>&mdash;</td></tr>
+            <tr><td class="p">GET /auth/me</td><td><span class="pill pub">any login</span></td><td>AuthService.me</td><td>200</td><td>401</td></tr>
+            <tr><td class="p">GET /search</td><td><span class="pill pub">public</span></td><td>SearchService.search</td><td>200</td><td>400</td></tr>
+            <tr><td class="p">GET /search/medicines?q=</td><td><span class="pill pub">public</span></td><td>SearchService.suggest</td><td>200</td><td>&mdash;</td></tr>
+            <tr><td class="p">GET /search/areas</td><td><span class="pill pub">public</span></td><td>SearchService.areas</td><td>200</td><td>&mdash;</td></tr>
+            <tr><td class="p">GET /pharmacies/:id/public</td><td><span class="pill pub">public</span></td><td>PharmacyService.publicDetail</td><td>200</td><td>404</td></tr>
+            <tr><td class="p">POST /holds</td><td><span class="pill pat">PATIENT</span></td><td>HoldService.placeHold</td><td>201</td><td>401, 409</td></tr>
+            <tr><td class="p">GET /holds/me</td><td><span class="pill pat">PATIENT</span></td><td>HoldService.listMine</td><td>200</td><td>401</td></tr>
+            <tr><td class="p">PATCH /holds/:id/cancel</td><td><span class="pill pat">PATIENT</span></td><td>HoldService.cancel</td><td>200</td><td>403, 409</td></tr>
+            <tr><td class="p">POST /pharmacies</td><td><span class="pill ph">PHARMACIST</span></td><td>PharmacyService.register</td><td>201</td><td>400, 409</td></tr>
+            <tr><td class="p">GET /pharmacies/mine</td><td><span class="pill ph">PHARMACIST</span></td><td>PharmacyService.mine</td><td>200</td><td>404</td></tr>
+            <tr><td class="p">POST /pharmacies/:id/credentials</td><td><span class="pill ph">PHARMACIST</span></td><td>PharmacyService.renewLicence</td><td>201</td><td>403</td></tr>
+            <tr><td class="p">GET /pharmacies/:id/stock</td><td><span class="pill ph">PHARMACIST</span></td><td>StockService.list</td><td>200</td><td>403</td></tr>
+            <tr><td class="p">POST /pharmacies/:id/stock</td><td><span class="pill ph">PHARMACIST</span></td><td>StockService.add</td><td>201</td><td>403, 409</td></tr>
+            <tr><td class="p">PATCH /pharmacies/:id/stock/:itemId</td><td><span class="pill ph">PHARMACIST</span></td><td>StockService.update</td><td>200</td><td>403, 404</td></tr>
+            <tr><td class="p">PUT /pharmacies/:id/hours</td><td><span class="pill ph">PHARMACIST</span></td><td>PharmacyService.setHours</td><td>200</td><td>400, 403</td></tr>
+            <tr><td class="p">GET /pharmacies/:id/holds</td><td><span class="pill ph">PHARMACIST</span></td><td>HoldService.incoming</td><td>200</td><td>403</td></tr>
+            <tr><td class="p">PATCH /pharmacies/:id/holds/:holdId/collect</td><td><span class="pill ph">PHARMACIST</span></td><td>HoldService.collect</td><td>200</td><td>403, 409</td></tr>
+            <tr><td class="p">GET /admin/pharmacies?status=</td><td><span class="pill ad">ADMIN</span></td><td>AdminService.list</td><td>200</td><td>403</td></tr>
+            <tr><td class="p">PATCH /admin/pharmacies/:id/verify</td><td><span class="pill ad">ADMIN</span></td><td>AdminService.verify</td><td>200</td><td>404, 409</td></tr>
+            <tr><td class="p">PATCH /admin/pharmacies/:id/reject</td><td><span class="pill ad">ADMIN</span></td><td>AdminService.reject</td><td>200</td><td>400, 404</td></tr>
+            <tr><td class="p">PATCH /admin/pharmacies/:id/suspend</td><td><span class="pill ad">ADMIN</span></td><td>AdminService.suspend</td><td>200</td><td>400, 404</td></tr>
+            <tr><td class="p">PATCH /admin/pharmacies/:id/reinstate</td><td><span class="pill ad">ADMIN</span></td><td>AdminService.reinstate</td><td>200</td><td>404, 409</td></tr>
+            <tr><td class="p">GET /admin/compliance/expiring</td><td><span class="pill ad">ADMIN</span></td><td>AdminService.expiringLicences</td><td>200</td><td>403</td></tr>
+            <tr><td class="p">GET /admin/compliance/missing-hours</td><td><span class="pill ad">ADMIN</span></td><td>AdminService.missingHours</td><td>200</td><td>403</td></tr>
+            <tr><td class="p">GET /admin/compliance/expired-holds</td><td><span class="pill ad">ADMIN</span></td><td>AdminService.expiredHolds</td><td>200</td><td>403</td></tr>
+            <tr><td class="p">POST /admin/search-index/rebuild</td><td><span class="pill ad">ADMIN</span></td><td>AdminService.rebuildSearch</td><td>200</td><td>403</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="note"><b>Success body:</b> <code>{ "data": ... }</code> (lists add <code>"meta": { page, limit, total }</code>). <b>Error body:</b> <code>{ "error": { "status": 409, "message": "Just missed it", "details": ... } }</code>. The frontend relies on this shape everywhere.</div>
+  </div>
+
+  <!-- 5 -->
+  <div class="section" id="b5">
+    <div class="sechead">5 · Authentication and RBAC <span class="wk">AP wk 8&ndash;9</span></div>
+    <p class="secintro">Week 8: JWT, hashing, protected routes. Week 9: refresh tokens and role-based access control. The refresh token lives in PostgreSQL through Prisma, never in an external cache.</p>
+    <div class="grid">
+      <div class="box orange"><b>Access token</b><span>JWT, 15 minutes, signed with JWT_ACCESS_SECRET; payload <code>{ sub, role }</code>; sent as <code>Authorization: Bearer</code></span></div>
+      <div class="box orange"><b>Refresh token</b><span>random, 7 days, httpOnly cookie on path <code>/api/v1/auth</code>; only its SHA-256 hash is stored</span></div>
+      <div class="box green"><b>RefreshToken table</b><span>user_id, token_hash UNIQUE, expires_at, revoked_at; rotated on every refresh</span></div>
+      <div class="box red"><b>Passwords</b><span>bcrypt, 10 rounds, async API only; the hash never leaves AuthService</span></div>
+    </div>
+    <div class="split" style="padding-top:0">
+<pre class="code"><code><span class="c">// middlewares/authenticate.ts</span>
+export const authenticate: RequestHandler = (req, _res, next) =&gt; {
+  const header = req.headers.authorization;
+  if (!header?.startsWith('Bearer ')) return next(new AppError(401, 'Log in first'));
+  try {
+    const p = jwt.verify(header.slice(7), env.JWT_ACCESS_SECRET) as JwtPayload;
+    req.user = { id: Number(p.sub), role: p.role };
+    next();
+  } catch {
+    next(new AppError(401, 'Session expired'));
+  }
+};
+
+<span class="c">// middlewares/authorize.ts</span>
+export const authorize = (...roles: Role[]): RequestHandler =&gt;
+  (req, _res, next) =&gt;
+    roles.includes(req.user!.role) ? next() : next(new AppError(403, 'Forbidden'));</code></pre>
+<pre class="code"><code><span class="c">// services/AuthService.ts: refresh with rotation</span>
+async refresh(rawToken: string | undefined) {
+  if (!rawToken) throw new AppError(401, 'Log in again');
+  const hash = sha256(rawToken);
+  const row = await prisma.refreshToken.findUnique({
+    where: { tokenHash: hash }, include: { user: true } });
+  if (!row || row.revokedAt || row.expiresAt &lt; new Date())
+    throw new AppError(401, 'Log in again');
+
+  const next = randomToken();
+  await prisma.$transaction([
+    prisma.refreshToken.update({ where: { id: row.id },
+                                 data: { revokedAt: new Date() } }),
+    prisma.refreshToken.create({ data: { userId: row.userId,
+      tokenHash: sha256(next), expiresAt: days(7) } }),
+  ]);
+  return { accessToken: signAccess(row.user), refreshToken: next };
+}</code></pre>
+    </div>
+    <div class="subnotes">
+      <div class="subnote">RBAC = role check in middleware: "can this role call this route at all"</div>
+      <div class="subnote">ownership = check in the service: "does this pharmacist own pharmacy :id"</div>
+      <div class="subnote">ADMIN can't be picked at register; the one admin comes from the seed script</div>
+      <div class="subnote">logout sets revoked_at and clears the cookie; that token can never refresh again</div>
+    </div>
+  </div>
+
+  <!-- 6 -->
+  <div class="section" id="b6">
+    <div class="sechead">6 · Services: where the business rules live <span class="wk">AP wk 5&ndash;7, 11</span></div>
+    <p class="secintro">Six TypeScript classes. Each one owns a slice of the domain and is the only code that touches its tables.</p>
+    <div class="pad">
+      <div class="tw">
+        <table>
+          <thead><tr><th>Service</th><th>Owns</th><th>Key rules</th><th>Uses a transaction for</th></tr></thead>
+          <tbody>
+            <tr><td class="p">AuthService</td><td>user, refresh_token</td><td>email unique; role only PATIENT / PHARMACIST at register</td><td>refresh rotation</td></tr>
+            <tr><td class="p">SearchService</td><td>reads availability (Mongo), view + stock (PG)</td><td>only VERIFIED + open now; final quantity check in PG; badge by last_updated</td><td>&mdash; (read only)</td></tr>
+            <tr><td class="p">HoldService</td><td>hold, stock_item.quantity</td><td>one ACTIVE hold per patient; 30 min; lazy expiry returns units</td><td>place, cancel, collect</td></tr>
+            <tr><td class="p">StockService</td><td>stock_item</td><td>owner + VERIFIED only; quantity &ge; 0; flags mongo_synced on failed copy</td><td>&mdash; (single row)</td></tr>
+            <tr><td class="p">PharmacyService</td><td>pharmacy, credential, operating_hours</td><td>new pharmacy starts PENDING; expiry date in future; hours split past midnight</td><td>register (pharmacy + credential), set hours</td></tr>
+            <tr><td class="p">AdminService</td><td>status changes, audit_log, compliance SQL</td><td>every decision writes audit_log; reject and suspend need a reason</td><td>verify, reject, suspend, reinstate</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7 -->
+  <div class="section" id="b7">
+    <div class="sechead">7 · Prisma: models, migrations, seed, transactions <span class="wk">AP wk 5&ndash;7</span></div>
+    <p class="secintro">Week 6 is setup and CRUD; week 7 is migrations, seeding, relations between models and transactions. All four are load-bearing in Velora.</p>
+    <div class="split stack">
+<pre class="code"><code><span class="c">// prisma/schema.prisma (excerpt)</span>
+enum Role           { PATIENT PHARMACIST ADMIN }
+enum PharmacyStatus { PENDING VERIFIED REJECTED SUSPENDED }
+enum HoldStatus     { ACTIVE COLLECTED CANCELLED EXPIRED }
+
+model Pharmacy {
+  id          Int            @id @default(autoincrement())
+  owner       User           @relation(fields: [ownerId], references: [id])
+  ownerId     Int
+  name        String
+  address     String
+  area        String
+  lat         Decimal        @db.Decimal(9, 6)
+  lng         Decimal        @db.Decimal(9, 6)
+  phone       String
+  is24x7      Boolean        @default(false)
+  status      PharmacyStatus @default(PENDING)
+  credentials Credential[]
+  hours       OperatingHours[]
+  stock       StockItem[]
+  @@index([status, lat, lng])
+}
+
+model StockItem {
+  id          Int      @id @default(autoincrement())
+  pharmacy    Pharmacy @relation(fields: [pharmacyId], references: [id])
+  pharmacyId  Int
+  medicine    Medicine @relation(fields: [medicineId], references: [id])
+  medicineId  Int
+  quantity    Int
+  price       Decimal  @db.Decimal(8, 2)
+  lastUpdated DateTime @default(now())
+  mongoSynced Boolean  @default(true)
+  holds       Hold[]
+  @@unique([pharmacyId, medicineId])
+  @@index([medicineId, quantity])
+}</code></pre>
+      <div class="grid g2" style="padding:0">
+        <div class="box green"><b>prisma migrate dev</b><span>creates a migration per schema change; committed to git</span></div>
+        <div class="box green"><b>Raw SQL migration</b><span>adds what Prisma can't express: <code>CHECK (quantity &gt;= 0)</code> and the <code>verified_open_pharmacy</code> view</span></div>
+        <div class="box green"><b>prisma db seed</b><span>reads JSON with fs.promises, createMany into PG, then builds and insertMany into Mongo</span></div>
+        <div class="box blue"><b>Relations</b><span>include / select to load pharmacy + medicine with a stock item in one query</span></div>
+        <div class="box red"><b>$transaction(fn)</b><span>interactive: the hold, where later steps depend on earlier results</span></div>
+        <div class="box red"><b>$transaction([...])</b><span>batch: refresh rotation, admin status + audit row</span></div>
+        <div class="box blue"><b>$queryRaw</b><span>tagged template for the search SQL and compliance reports; parameters are never string-joined</span></div>
+        <div class="box orange"><b>One client</b><span>db/prisma.ts exports a single PrismaClient so the connection pool is shared</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8 -->
+  <div class="section" id="b8">
+    <div class="sechead">8 · PostgreSQL schema and normalisation <span class="wk">DE wk 1&ndash;2, 5, 8</span></div>
+    <p class="secintro">Nine tables. Constraints do as much of the checking as possible, so a bug in code can't store bad data.</p>
+    <div class="pad">
+      <div class="tw">
+        <table>
+          <thead><tr><th>Table</th><th>Keys</th><th>Constraints</th><th>Why it's separate</th></tr></thead>
+          <tbody>
+            <tr><td class="p">user</td><td>PK id</td><td>email UNIQUE NOT NULL, role enum</td><td>one row per login</td></tr>
+            <tr><td class="p">refresh_token</td><td>PK id, FK user_id</td><td>token_hash UNIQUE</td><td>a user has many devices / sessions</td></tr>
+            <tr><td class="p">pharmacy</td><td>PK id, FK owner_id</td><td>status enum, lat/lng NOT NULL</td><td>the business itself</td></tr>
+            <tr><td class="p">credential</td><td>PK id, FK pharmacy_id</td><td>expiry_date &gt; issue_date</td><td>licences renew: history without editing pharmacy (3NF)</td></tr>
+            <tr><td class="p">operating_hours</td><td>PK id, FK pharmacy_id</td><td>day_of_week 0&ndash;6, close &gt; open</td><td>one value per column: one row per day (1NF)</td></tr>
+            <tr><td class="p">medicine</td><td>PK id</td><td>name + form UNIQUE</td><td>composition and form depend only on the medicine (BCNF)</td></tr>
+            <tr><td class="p">stock_item</td><td>PK id, FK pharmacy_id, FK medicine_id</td><td>UNIQUE (pharmacy_id, medicine_id), CHECK quantity &ge; 0</td><td>resolves pharmacy &harr; medicine many-to-many; quantity needs both (2NF)</td></tr>
+            <tr><td class="p">hold</td><td>PK id, FK stock_item_id, FK patient_id</td><td>status enum, expires_at NOT NULL</td><td>each reservation has its own lifecycle</td></tr>
+            <tr><td class="p">audit_log</td><td>PK id, FK actor_id, FK pharmacy_id</td><td>append only: no update or delete route</td><td>every admin decision, for compliance queries</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="subnotes">
+      <div class="subnote">anomaly avoided: renewing a licence never overwrites the old one (update anomaly)</div>
+      <div class="subnote">anomaly avoided: deleting the last stock row never deletes the medicine (delete anomaly)</div>
+      <div class="subnote">anomaly avoided: a medicine can exist before any pharmacy stocks it (insert anomaly)</div>
+    </div>
+  </div>
+
+  <!-- 9 -->
+  <div class="section" id="b9">
+    <div class="sechead">9 · Advanced SQL: each technique answers a real question <span class="wk">DE wk 3&ndash;7</span></div>
+    <p class="secintro">Every query technique from weeks 3 to 7 is used by an actual screen, run through <code>prisma.$queryRaw</code>.</p>
+    <div class="pad">
+      <div class="tw">
+        <table>
+          <thead><tr><th>Question</th><th>Technique</th><th>DE wk</th><th>Used by</th></tr></thead>
+          <tbody>
+            <tr><td>Is this stock fresh or stale?</td><td>CASE on last_updated</td><td>3</td><td>search badge</td></tr>
+            <tr><td>Medicines matching what was typed</td><td>ILIKE wildcard, LIMIT</td><td>3</td><td>suggestions</td></tr>
+            <tr><td>Pharmacies with more than 5 expired holds this week</td><td>GROUP BY + HAVING + DATE_TRUNC</td><td>4</td><td>compliance</td></tr>
+            <tr><td>Stock with pharmacy and medicine names</td><td>INNER JOIN x 2</td><td>5</td><td>pharmacist stock list</td></tr>
+            <tr><td>Every pharmacy, even with no stock yet</td><td>LEFT JOIN + COALESCE(count, 0)</td><td>4&ndash;5</td><td>admin list</td></tr>
+            <tr><td>Other medicines with the same salt</td><td>SELF JOIN on composition</td><td>6</td><td>search alternatives</td></tr>
+            <tr><td>Open right now</td><td>NON-EQUI JOIN on time range, in a VIEW</td><td>6&ndash;7</td><td>search</td></tr>
+            <tr><td>Days with no hours set</td><td>CROSS JOIN days 0&ndash;6 + LEFT JOIN, keep NULLs</td><td>6</td><td>compliance</td></tr>
+            <tr><td>Pharmacies stocking nothing</td><td>non-correlated subquery, NOT IN</td><td>6</td><td>compliance</td></tr>
+            <tr><td>Licences expiring with no newer one on file</td><td>CTE + correlated NOT EXISTS</td><td>7</td><td>compliance</td></tr>
+            <tr><td>Was this pharmacy suspended before?</td><td>correlated EXISTS on audit_log</td><td>7</td><td>approval screen</td></tr>
+            <tr><td>Nearest first</td><td>CTE + Haversine + ORDER BY + LIMIT</td><td>3, 7</td><td>search</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="split" style="padding-top:0">
+<pre class="code"><code><span class="c">-- DE wk 6-7: the view every search reads</span>
+CREATE VIEW verified_open_pharmacy AS
+SELECT p.id, p.name, p.phone, p.lat, p.lng, p.is_24x7
+FROM pharmacy p
+JOIN operating_hours oh
+  ON  oh.pharmacy_id = p.id
+  AND oh.day_of_week = EXTRACT(DOW FROM NOW())
+  AND CURRENT_TIME BETWEEN oh.open_time AND oh.close_time
+WHERE p.status = 'VERIFIED';
+
+<span class="c">-- DE wk 6: missing days</span>
+SELECT p.name, d.day
+FROM pharmacy p
+CROSS JOIN generate_series(0, 6) AS d(day)
+LEFT JOIN operating_hours oh
+  ON oh.pharmacy_id = p.id AND oh.day_of_week = d.day
+WHERE p.status = 'VERIFIED' AND oh.id IS NULL;</code></pre>
+<pre class="code"><code><span class="c">-- DE wk 7: CTE + correlated NOT EXISTS</span>
+WITH expiring AS (
+  SELECT c.pharmacy_id, c.license_number, c.expiry_date
+  FROM credential c
+  WHERE c.expiry_date BETWEEN CURRENT_DATE
+                          AND CURRENT_DATE + INTERVAL '30 days'
+)
+SELECT p.name, e.license_number, e.expiry_date
+FROM expiring e
+JOIN pharmacy p ON p.id = e.pharmacy_id
+WHERE NOT EXISTS (
+  SELECT 1 FROM credential c2
+  WHERE c2.pharmacy_id = e.pharmacy_id
+    AND c2.expiry_date &gt; e.expiry_date);
+
+<span class="c">-- DE wk 4: GROUP BY + HAVING</span>
+SELECT s.pharmacy_id, COUNT(*) AS expired_holds
+FROM hold h JOIN stock_item s ON s.id = h.stock_item_id
+WHERE h.status = 'EXPIRED'
+  AND h.expires_at &gt;= DATE_TRUNC('week', NOW())
+GROUP BY s.pharmacy_id
+HAVING COUNT(*) &gt; 5;</code></pre>
+    </div>
+  </div>
+
+  <!-- 10 -->
+  <div class="section" id="b10">
+    <div class="sechead">10 · The hold: one ACID transaction <span class="wk">AP wk 7 · DE wk 8</span></div>
+    <p class="secintro">Two patients tap Hold on the last unit at once. The decrement only happens while quantity is at least 1, so PostgreSQL itself decides the one winner.</p>
+    <div class="split stack">
+<pre class="code"><code><span class="c">// services/HoldService.ts</span>
+async placeHold(patientId: number, stockItemId: number) {
+  if (await prisma.hold.count({ where: { patientId, status: 'ACTIVE',
+                                         expiresAt: { gt: new Date() } } }))
+    throw new AppError(409, 'You already have an active hold');
+
+  const hold = await prisma.$transaction(async (tx) =&gt; {
+    <span class="c">// 1. lazy expiry: old holds on this item give their units back</span>
+    const expired = await tx.hold.updateMany({
+      where: { stockItemId, status: 'ACTIVE', expiresAt: { lt: new Date() } },
+      data:  { status: 'EXPIRED' } });
+    if (expired.count) await tx.stockItem.update({ where: { id: stockItemId },
+      data: { quantity: { increment: expired.count } } });
+
+    <span class="c">// 2. take one unit only if one is left</span>
+    const took = await tx.stockItem.updateMany({
+      where: { id: stockItemId, quantity: { gte: 1 } },
+      data:  { quantity: { decrement: 1 } } });
+    if (took.count === 0) throw new AppError(409, 'Just missed it'); <span class="c">// ROLLBACK</span>
+
+    <span class="c">// 3. record it</span>
+    return tx.hold.create({ data: { stockItemId, patientId, status: 'ACTIVE',
+      expiresAt: new Date(Date.now() + 30 * 60_000) } });
+  });                                                              <span class="c">// COMMIT</span>
+
+  await this.copy.adjust(stockItemId, -1);   <span class="c">// Mongo $inc, after commit</span>
+  return hold;
+}</code></pre>
+      <div class="grid g2" style="padding:0">
+        <div class="box red"><b>Atomicity</b><span>decrement and hold insert commit together or not at all; a thrown AppError rolls both back</span></div>
+        <div class="box red"><b>Consistency</b><span>CHECK quantity &ge; 0 means the database refuses a negative count even if code is wrong</span></div>
+        <div class="box red"><b>Isolation</b><span>the UPDATE row-locks the stock row; the second transaction waits, re-reads, finds 0, updates 0 rows</span></div>
+        <div class="box red"><b>Durability</b><span>once COMMIT returns, the hold survives a crash; only then is the patient told "reserved"</span></div>
+        <div class="box blue"><b>Cancel</b><span>transaction: ACTIVE → CANCELLED and quantity + 1</span></div>
+        <div class="box blue"><b>Collect</b><span>ACTIVE → COLLECTED; quantity unchanged, the unit left the shelf</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 11 -->
+  <div class="section" id="b11">
+    <div class="sechead">11 · Indexing and query optimisation <span class="wk">DE wk 9</span></div>
+    <p class="secintro">Seed enough rows that a full scan hurts, run EXPLAIN ANALYZE, add B-Tree indexes, run it again. The before and after table goes in the report.</p>
+    <div class="pad">
+      <div class="tw">
+        <table>
+          <thead><tr><th>Index</th><th>Query it serves</th><th>Expect before → after</th></tr></thead>
+          <tbody>
+            <tr><td class="p">stock_item (medicine_id, quantity)</td><td>who has medicine X in stock</td><td>Seq Scan → Index Scan</td></tr>
+            <tr><td class="p">pharmacy (status, lat, lng)</td><td>verified pharmacies inside the search box</td><td>Seq Scan → Index / Bitmap Scan</td></tr>
+            <tr><td class="p">operating_hours (pharmacy_id, day_of_week)</td><td>the open-now view join</td><td>Hash Join on full table → Index Scan</td></tr>
+            <tr><td class="p">credential (pharmacy_id, expiry_date)</td><td>expiring-licence CTE</td><td>Seq Scan → Index Scan</td></tr>
+            <tr><td class="p">hold (stock_item_id, status, expires_at)</td><td>lazy expiry inside the hold transaction</td><td>keeps the lock window short</td></tr>
+            <tr><td class="p">hold (patient_id, status)</td><td>"one active hold" check, My holds</td><td>Seq Scan → Index Scan</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="subnotes">
+      <div class="subnote">seed about 500 pharmacies and 20,000 stock rows first, or every plan says Seq Scan is fine</div>
+      <div class="subnote">distance: bounding box on lat/lng uses the B-Tree; Haversine runs only on what's left</div>
+      <div class="subnote">record Execution Time from 5 runs and use the median</div>
+    </div>
+  </div>
+
+  <!-- 12 -->
+  <div class="section" id="b12">
+    <div class="sechead">12 · MongoDB: the search copy <span class="wk">DE wk 10&ndash;12</span></div>
+    <p class="secintro">Two collections, written only by services after a PostgreSQL commit, and fully rebuildable from PostgreSQL by the admin rebuild endpoint.</p>
+    <div class="split stack">
+<pre class="code"><code><span class="c">// availability: one document per stock item (DE wk 11: embed)</span>
+{
+  _id: 42,                       <span class="c">// = stock_item.id</span>
+  pharmacyId: 3,                 <span class="c">// reference, not embedded</span>
+  medicine: { name: "Dolo 650", composition: "Paracetamol 650mg",
+              form: "TABLET" },  <span class="c">// embedded copy</span>
+  quantity: 4, price: 32, available: true,
+  lastUpdated: ISODate("2026-09-28T08:10:00Z")
+}
+
+<span class="c">// pharmacies: referenced by availability.pharmacyId</span>
+{ _id: 3, name: "City Care Chemist", area: "Sonipat Sector 14",
+  lat: 28.9931, lng: 77.0151, is24x7: true, verified: true }
+
+<span class="c">// DE wk 12: search pipeline</span>
+db.availability.aggregate([
+  { $match:  { "medicine.name": { $regex: q, $options: "i" }, available: true } },
+  { $lookup: { from: "pharmacies", localField: "pharmacyId",
+               foreignField: "_id", as: "pharmacy" } },
+  { $match:  { "pharmacy.verified": true } },
+  { $sort:   { lastUpdated: -1 } },
+  { $limit:  50 }
+])
+
+<span class="c">// DE wk 12: admin report</span>
+db.availability.aggregate([
+  { $match: { available: false } },
+  { $group: { _id: "$medicine.name", pharmacies: { $sum: 1 } } },
+  { $sort:  { pharmacies: -1 } }, { $limit: 10 }
+])</code></pre>
+      <div class="grid g2" style="padding:0">
+        <div class="box green"><b>After a hold</b><span><code>updateOne({_id}, {$inc: {quantity: -1}})</code></span></div>
+        <div class="box green"><b>After a cancel / expiry</b><span><code>$inc: {quantity: +n}</code></span></div>
+        <div class="box green"><b>After a stock edit</b><span><code>$set: {quantity, price, available, lastUpdated}</code></span></div>
+        <div class="box green"><b>After verify / suspend</b><span><code>pharmacies.updateOne({_id}, {$set: {verified}})</code></span></div>
+        <div class="box red"><b>Copy fails</b><span>log it, set <code>mongo_synced = false</code> on the PG row; the request still succeeds</span></div>
+        <div class="box blue"><b>Rebuild</b><span>admin endpoint re-copies flagged rows with <code>replaceOne(..., {upsert: true})</code></span></div>
+        <div class="box orange"><b>Why embed medicine</b><span>always shown with the stock, and rarely changes</span></div>
+        <div class="box orange"><b>Why reference pharmacy</b><span>one pharmacy, hundreds of docs, and its verified flag changes</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 13 -->
+  <div class="section" id="b13">
+    <div class="sechead">13 · Validation and error handling <span class="wk">AP wk 4, 10</span></div>
+    <p class="secintro">Week 10: sync and async errors, and a custom error class. Every failure, expected or not, leaves through one middleware in one JSON shape.</p>
+    <div class="split stack">
+<pre class="code"><code><span class="c">// utils/AppError.ts</span>
+export class AppError extends Error {
+  constructor(public status: number, message: string, public details?: unknown) {
+    super(message);
+    this.name = 'AppError';
+  }
+}
+
+<span class="c">// utils/asyncHandler.ts: async errors reach next()</span>
+export const asyncHandler = (fn: AsyncHandler): RequestHandler =&gt;
+  (req, res, next) =&gt; Promise.resolve(fn(req, res, next)).catch(next);
+
+<span class="c">// middlewares/errorHandler.ts</span>
+export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) =&gt; {
+  if (err?.code === 'P2002') err = new AppError(409, 'Already exists');
+  if (err?.code === 'P2025') err = new AppError(404, 'Not found');
+  if (err instanceof AppError)
+    return res.status(err.status).json({ error: { status: err.status,
+      message: err.message, details: err.details } });
+  console.error(err);                                  <span class="c">// stack stays on the server</span>
+  res.status(500).json({ error: { status: 500, message: 'Something went wrong' } });
+};</code></pre>
+      <div class="pad" style="padding:0">
+        <div class="tw">
+          <table style="min-width:0">
+            <thead><tr><th>Status</th><th>When</th></tr></thead>
+            <tbody>
+              <tr><td class="p">400</td><td>validate middleware: missing or wrong fields, with <code>details</code> per field</td></tr>
+              <tr><td class="p">401</td><td>no token, bad token, expired token, wrong password</td></tr>
+              <tr><td class="p">403</td><td>wrong role, or not the owner of that pharmacy / hold</td></tr>
+              <tr><td class="p">404</td><td>unknown path, or Prisma P2025 record not found</td></tr>
+              <tr><td class="p">409</td><td>Prisma P2002 duplicate, last unit taken, already has a hold, wrong status</td></tr>
+              <tr><td class="p">500</td><td>anything unexpected; generic message only</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 14 -->
+  <div class="section" id="b14">
+    <div class="sechead">14 · The event loop: rules that keep one thread fast <span class="wk">AP wk 10</span></div>
+    <p class="secintro">Node runs your JavaScript on one main thread. While it waits on PostgreSQL, MongoDB or bcrypt, it serves other requests. Anything synchronous and slow makes every user wait.</p>
+    <div class="grid g3">
+      <div class="box red"><b>bcrypt async only</b><span><code>await bcrypt.hash()</code> runs in the libuv thread pool; <code>hashSync</code> blocks everyone</span></div>
+      <div class="box red"><b>No sync fs in requests</b><span><code>fs.promises</code> in the seed script; no <code>readFileSync</code> in any handler</span></div>
+      <div class="box blue"><b>Paginate everything</b><span>Prisma <code>take</code> / <code>skip</code>, default 20, max 50</span></div>
+      <div class="box blue"><b>Let SQL do the work</b><span>filter, join and sort in the query; never load a table and loop in JS</span></div>
+      <div class="box blue"><b>Parallel when independent</b><span><code>Promise.all</code> for the three compliance reports, not three awaits in a row</span></div>
+      <div class="box orange"><b>Short transactions</b><span>no network calls inside <code>$transaction</code>; the Mongo copy happens after commit</span></div>
+    </div>
+  </div>
+
+  <!-- 15 -->
+  <div class="section" id="b15">
+    <div class="sechead">15 · TypeScript and OOP <span class="wk">AP wk 11</span></div>
+    <p class="secintro">Week 11 converts JS to TS and represents entities as classes. Velora uses classes where they carry behaviour and types where they only describe shape.</p>
+    <div class="grid">
+      <div class="box blue"><b>Classes with behaviour</b><span>AuthService, HoldService, ...; dependencies (prisma, the Mongo copy) passed in the constructor</span></div>
+      <div class="box blue"><b>Inheritance</b><span><code>AppError extends Error</code> adds status and details</span></div>
+      <div class="box blue"><b>Encapsulation</b><span>private helpers like <code>releaseExpired(tx, id)</code>; controllers only see public methods</span></div>
+      <div class="box green"><b>Types for shape</b><span>Prisma generates model types; DTO types for request bodies; <code>req.user</code> typed in express.d.ts</span></div>
+    </div>
+<pre class="code" style="margin:0 16px 16px"><code><span class="c">// types/express.d.ts</span>
+declare global { namespace Express { interface Request { user?: { id: number; role: Role } } } }
+
+<span class="c">// services/index.ts: wire once, reuse everywhere</span>
+export const searchCopy     = new SearchCopy(mongoDb);                 <span class="c">// wraps availability + pharmacies</span>
+export const authService    = new AuthService(prisma);
+export const holdService    = new HoldService(prisma, searchCopy);
+export const stockService   = new StockService(prisma, searchCopy);
+export const adminService   = new AdminService(prisma, searchCopy);</code></pre>
+  </div>
+
+  <!-- 16 -->
+  <div class="section" id="b16">
+    <div class="sechead">16 · Deployment and environment <span class="wk">AP wk 12</span></div>
+    <p class="secintro">Week 12: deploying Node projects, dev vs production, .env files. Heroku runs the API; Vercel serves the React app and forwards <code>/api</code> to Heroku.</p>
+    <div class="split">
+      <div class="tw">
+        <table style="min-width:0">
+          <thead><tr><th>Variable</th><th>Used for</th></tr></thead>
+          <tbody>
+            <tr><td class="p">DATABASE_URL</td><td>Prisma → managed PostgreSQL</td></tr>
+            <tr><td class="p">MONGO_URL</td><td>MongoDB Atlas</td></tr>
+            <tr><td class="p">JWT_ACCESS_SECRET</td><td>signs access tokens</td></tr>
+            <tr><td class="p">JWT_REFRESH_SECRET</td><td>kept separate so one leak doesn't expose both</td></tr>
+            <tr><td class="p">ADMIN_EMAIL, ADMIN_PASSWORD</td><td>seed script only</td></tr>
+            <tr><td class="p">NODE_ENV</td><td>secure cookies and log format in production</td></tr>
+            <tr><td class="p">PORT</td><td>set by Heroku</td></tr>
+          </tbody>
+        </table>
+      </div>
+<pre class="code"><code><span class="c">// package.json</span>
+"scripts": {
+  "dev":   "tsx watch src/server.ts",
+  "build": "tsc",
+  "start": "node dist/server.js",
+  "db:migrate": "prisma migrate dev",
+  "db:seed":    "prisma db seed"
+}
+
+<span class="c"># Procfile (Heroku)</span>
+release: npx prisma migrate deploy
+web:     npm start
+
+<span class="c"># .env.example is committed; .env never is</span></code></pre>
+    </div>
+  </div>
+
+  <!-- 17 -->
+  <div class="section" id="b17">
+    <div class="sechead">17 · Demo checks: proving it works <span class="wk">for the viva</span></div>
+    <p class="secintro">Six things to show live with Postman or the frontend. Each one proves a syllabus topic instead of just claiming it.</p>
+    <div class="grid g3">
+      <div class="box orange"><b>RBAC</b><span>call <code>/admin/pharmacies</code> as a PATIENT → 403; as ADMIN → 200</span></div>
+      <div class="box orange"><b>Refresh</b><span>wait 15 min (or shorten in dev), call <code>/holds/me</code> → 401 → refresh → 200</span></div>
+      <div class="box red"><b>The race</b><span>set quantity to 1, fire two POST /holds together → one 201, one 409, quantity 0</span></div>
+      <div class="box red"><b>Rollback</b><span>show the 409 case left no hold row and quantity unchanged</span></div>
+      <div class="box green"><b>EXPLAIN</b><span>same query before and after the index, Execution Time side by side</span></div>
+      <div class="box green"><b>Copy repair</b><span>stop Mongo, edit stock → row flagged; start Mongo, rebuild → search shows the new number</span></div>
+    </div>
+  </div>
+
+  <footer>
+    Request path: client → Express (json, cookies, logging) → /api/v1 router → authenticate → authorize → validate → controller → service → Prisma → PostgreSQL, then the MongoDB copy.<br>
+    Every section maps to a named CSA213 or CSA214 week. Nothing here (no Redis, no PostGIS, no message queue, no microservices) goes past what this semester teaches.
+  </footer>
+
+</div>
+
+</body>
+</html>

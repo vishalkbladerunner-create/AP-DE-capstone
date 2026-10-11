@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Velora Frontend</title>
+<style>
+  :root{
+    color-scheme: light;
+    --page:#eae6d8; --cream:#f7f4ea; --ink:#1a1a1a; --ink-dim:#55534a;
+    --yellow:#f5d444; --blue-fill:#cfe0ee; --blue-line:#2c5f8a;
+    --green-fill:#d3ead9; --green-line:#2f7a4f;
+    --orange-fill:#f5d3b8; --orange-line:#c1652e;
+    --red-fill:#f3c9c9; --red-line:#b33a3a;
+    --navy:#1d3a5f; --code-bg:#1d2733; --code-ink:#e8eef4; --code-dim:#93a8bb;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+    --sans:Arial,Helvetica,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{background:var(--page)}
+  body{margin:0;padding-inline:16px;padding-block:18px;font-family:var(--mono);color:var(--ink)}
+  .poster{max-width:1600px;margin:0 auto;background:var(--cream);border:3px solid var(--ink);border-radius:6px;padding-inline:clamp(14px,3vw,40px);padding-block:28px 36px}
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+  .legend{border:2px solid var(--ink);border-radius:6px;background:#fff;padding:10px 16px;font-size:12.5px;line-height:1.9}
+  .legend div{display:flex;align-items:center;gap:8px}
+  .dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto}
+  .dot.blue{background:var(--blue-line)} .dot.green{background:var(--green-line)} .dot.orange{background:var(--orange-line)} .dot.red{background:var(--red-line)}
+  .badge{background:var(--navy);color:#fff;border-radius:6px;padding:10px 16px;font-size:12px;font-weight:700;text-align:center;line-height:1.5;letter-spacing:.03em}
+  h1{font-family:var(--sans);font-size:clamp(34px,6vw,54px);text-align:center;margin:10px 0 4px;letter-spacing:-.01em;color:var(--ink)}
+  .subtitle{text-align:center;color:var(--ink-dim);font-size:14px;max-width:1000px;margin:0 auto 22px;line-height:1.6;text-wrap:balance}
+  .toc{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:0 0 22px}
+  .toc a{font-size:12px;color:var(--ink);text-decoration:none;border:1.5px solid var(--ink);background:#fff;border-radius:3px;padding:4px 8px}
+  .toc a:hover,.toc a:focus-visible{background:var(--yellow);outline:none}
+  .section{border:2px solid var(--ink);border-radius:4px;margin-bottom:22px;overflow:hidden;background:var(--cream);scroll-margin-top:10px}
+  .sechead{background:var(--yellow);border-bottom:2px solid var(--ink);padding:11px 14px;font-weight:700;font-size:15px;text-align:center;font-family:var(--sans)}
+  .secintro{padding:14px 22px 2px;color:var(--ink-dim);font-size:13px;text-align:center;line-height:1.7;max-width:1200px;margin:0 auto}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:12px;padding:16px}
+  .grid.g2{grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr))}
+  .grid.g3{grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))}
+  .box{border:1.5px solid var(--ink);padding:12px 14px;border-radius:3px;text-align:center;background:#fff}
+  .box.blue{background:var(--blue-fill);border-color:var(--blue-line)}
+  .box.green{background:var(--green-fill);border-color:var(--green-line)}
+  .box.orange{background:var(--orange-fill);border-color:var(--orange-line)}
+  .box.red{background:var(--red-fill);border-color:var(--red-line)}
+  .box b{display:block;font-size:13.5px;margin-bottom:4px;color:var(--ink)}
+  .box span{display:block;font-size:11.5px;color:var(--ink-dim);line-height:1.5}
+  .box ul{margin:6px 0 0;padding-left:16px;text-align:left;font-size:11.5px;color:var(--ink-dim);line-height:1.6}
+  .note{margin:0 16px 16px;border:2px solid var(--ink);border-radius:4px;background:#fff;padding:12px 16px;font-size:12.5px;line-height:1.7;color:var(--ink)}
+  .subnotes{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:8px;padding:0 16px 16px}
+  .subnote{border:1.5px solid #bdb69c;border-radius:3px;background:#f0ece0;padding:9px 12px;font-size:11.5px;font-style:italic;color:#4a463a;text-align:center;line-height:1.5}
+  .split{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:12px;padding:16px}
+  .split > *{min-width:0}
+  pre.code{margin:0;overflow-x:auto;background:var(--code-bg);color:var(--code-ink);border:2px solid var(--ink);border-radius:4px;padding:12px 14px;font-size:12px;line-height:1.55}
+  pre.code .c{color:var(--code-dim)}
+  .pad{padding:16px}
+  .tw{overflow-x:auto;border:2px solid var(--ink);border-radius:4px;background:#fff}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:640px;color:var(--ink)}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid #d6d1bf;vertical-align:top;line-height:1.5}
+  th{background:#f0ece0;font-size:11.5px;letter-spacing:.03em;text-transform:uppercase;color:var(--ink-dim)}
+  tbody tr:last-child td{border-bottom:0}
+  td.p{white-space:nowrap;font-weight:700}
+  .pill{display:inline-block;border:1.5px solid;border-radius:3px;padding:0 6px;font-size:11px;font-weight:700}
+  .pill.pub{background:#fff;border-color:#8a8676}
+  .pill.pat{background:var(--orange-fill);border-color:var(--orange-line)}
+  .pill.ph{background:var(--blue-fill);border-color:var(--blue-line)}
+  .pill.ad{background:var(--red-fill);border-color:var(--red-line)}
+  code{font-family:var(--mono);font-size:.95em;background:#efe9d6;border:1px solid #d6d1bf;border-radius:3px;padding:0 4px}
+  pre.code code{background:none;border:0;padding:0;font-size:inherit}
+  footer{margin-top:24px;padding-top:16px;border-top:2px solid var(--ink);text-align:center;font-size:12.5px;font-style:italic;color:var(--ink-dim);line-height:1.9}
+  @media(max-width:640px){.topbar{flex-direction:column}}
+</style>
+</head>
+<body>
+
+
+<div class="poster">
+
+  <div class="topbar">
+    <div class="legend">
+      <div><span class="dot blue"></span> Runs in the browser: components, hooks, router</div>
+      <div><span class="dot green"></span> Build time and tooling: Vite, TS, tests</div>
+      <div><span class="dot orange"></span> Talks to the backend: fetch, cache, tokens</div>
+      <div><span class="dot red"></span> Where a patient in a hurry feels it</div>
+    </div>
+    <div class="badge">VELORA<br>FRONTEND ARCHITECTURE<br>REACT 18 · TS · VITE</div>
+  </div>
+
+  <h1>Frontend</h1>
+  <p class="subtitle">a client-rendered React 18 + TypeScript app that talks to the Velora REST API over /api/v1: how the routes, components, state, hooks and API client fit together, from typing a medicine name to holding the last strip</p>
+
+  <nav class="toc" aria-label="Sections">
+    <a href="#s1">1 Stack</a><a href="#s2">2 Folders</a><a href="#s3">3 Routes</a><a href="#s4">4 Layouts + guards</a>
+    <a href="#s5">5 Screens</a><a href="#s6">6 State</a><a href="#s7">7 Hooks</a><a href="#s8">8 API client</a>
+    <a href="#s9">9 Forms</a><a href="#s10">10 UI states</a><a href="#s11">11 Emergency UX</a><a href="#s12">12 Performance</a>
+    <a href="#s13">13 Build + deploy</a><a href="#s14">14 Testing</a>
+  </nav>
+
+  <!-- 1 -->
+  <div class="section" id="s1">
+    <div class="sechead">1 · Stack and rendering: client-rendered on purpose</div>
+    <p class="secintro">Results change every minute and nobody needs an emergency search page in Google, so there's nothing to pre-build (no SSG) and no SEO reason for server rendering (no SSR). A small Vite SPA loads once and then only moves JSON.</p>
+    <div class="grid">
+      <div class="box blue"><b>React 18 + TypeScript</b><span>function components and hooks only; shared types for API responses</span></div>
+      <div class="box green"><b>Vite</b><span>dev server with /api proxy to localhost:4000; production build to <code>dist/</code></span></div>
+      <div class="box blue"><b>React Router v6</b><span>createBrowserRouter, nested layouts, loaders not used</span></div>
+      <div class="box orange"><b>TanStack Query</b><span>every piece of data that came from the API: caching, refetch, retries</span></div>
+      <div class="box blue"><b>React Hook Form + Zod</b><span>forms with the same rules the API validates</span></div>
+      <div class="box green"><b>Tailwind CSS</b><span>mobile-first utility classes, one theme file for colours</span></div>
+    </div>
+  </div>
+
+  <!-- 2 -->
+  <div class="section" id="s2">
+    <div class="sechead">2 · Folder structure: grouped by feature, not by file type</div>
+    <p class="secintro">Everything for one feature (its pages, components, hooks and API calls) lives together, so working on holds means opening one folder.</p>
+    <div class="split">
+<pre class="code"><code>client/src/
+├─ main.tsx              <span class="c">providers: QueryClient, AuthProvider, Router</span>
+├─ app/
+│  ├─ router.tsx         <span class="c">createBrowserRouter, lazy routes</span>
+│  ├─ RootLayout.tsx     <span class="c">header, toaster, error boundary</span>
+│  ├─ RequireAuth.tsx
+│  └─ RequireRole.tsx
+├─ api/
+│  ├─ client.ts          <span class="c">apiFetch: token, refresh, ApiError</span>
+│  └─ types.ts           <span class="c">Pharmacy, StockItem, Hold, User</span>
+├─ features/
+│  ├─ auth/              <span class="c">LoginPage RegisterPage AuthContext</span>
+│  ├─ search/            <span class="c">SearchPage ResultCard useSearch</span>
+│  ├─ pharmacy/          <span class="c">PharmacyDetailPage</span>
+│  ├─ holds/             <span class="c">MyHoldsPage usePlaceHold useCountdown</span>
+│  ├─ pharmacist/        <span class="c">Onboarding Stock Hours IncomingHolds</span>
+│  └─ admin/             <span class="c">Verifications Compliance SearchIndex</span>
+├─ components/ui/        <span class="c">Button Input Badge Skeleton Modal Toast</span>
+├─ hooks/                <span class="c">useDebounce useGeolocation useOnline</span>
+└─ lib/                  <span class="c">schemas.ts format.ts constants.ts</span></code></pre>
+      <div class="grid g2" style="padding:0">
+        <div class="box blue"><b>features/*</b><span>a feature can import from components/, hooks/, lib/ and api/, never from another feature</span></div>
+        <div class="box blue"><b>components/ui</b><span>no data fetching, only props in, markup out; used by every feature</span></div>
+        <div class="box orange"><b>api/</b><span>the only folder that calls fetch; components never do</span></div>
+        <div class="box green"><b>lib/schemas.ts</b><span>Zod schemas for every form, matching the API's validate middleware</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3 -->
+  <div class="section" id="s3">
+    <div class="sechead">3 · Route map: every page, who can see it, what it calls</div>
+    <p class="secintro">Route groups mirror the backend's roles. Hiding a page here is convenience only; the API's RBAC middleware is the real check.</p>
+    <div class="pad">
+      <div class="tw">
+        <table>
+          <thead><tr><th>Path</th><th>Who</th><th>Page</th><th>Calls</th></tr></thead>
+          <tbody>
+            <tr><td class="p">/</td><td><span class="pill pub">public</span></td><td>Search: medicine box, location, results</td><td><code>GET /search</code>, <code>/search/medicines</code>, <code>/search/areas</code></td></tr>
+            <tr><td class="p">/pharmacy/:id</td><td><span class="pill pub">public</span></td><td>Pharmacy detail: address, phone, hours, stock</td><td><code>GET /pharmacies/:id/public</code></td></tr>
+            <tr><td class="p">/login, /register</td><td><span class="pill pub">public</span></td><td>Auth forms; login returns to the page you came from</td><td><code>POST /auth/login</code>, <code>/auth/register</code></td></tr>
+            <tr><td class="p">/holds</td><td><span class="pill pat">PATIENT</span></td><td>My holds with a live countdown and Cancel</td><td><code>GET /holds/me</code>, <code>PATCH /holds/:id/cancel</code></td></tr>
+            <tr><td class="p">/pharmacist/onboarding</td><td><span class="pill ph">PHARMACIST</span></td><td>Register pharmacy + licence, then shows PENDING / REJECTED reason</td><td><code>POST /pharmacies</code>, <code>GET /pharmacies/mine</code></td></tr>
+            <tr><td class="p">/pharmacist/stock</td><td><span class="pill ph">PHARMACIST</span></td><td>Stock table with inline quantity and price edits</td><td><code>GET/POST/PATCH /pharmacies/:id/stock</code></td></tr>
+            <tr><td class="p">/pharmacist/hours</td><td><span class="pill ph">PHARMACIST</span></td><td>7-day hours editor, 24x7 toggle</td><td><code>PUT /pharmacies/:id/hours</code></td></tr>
+            <tr><td class="p">/pharmacist/holds</td><td><span class="pill ph">PHARMACIST</span></td><td>Incoming holds with Mark collected</td><td><code>GET /pharmacies/:id/holds</code>, <code>PATCH .../collect</code></td></tr>
+            <tr><td class="p">/admin/verifications</td><td><span class="pill ad">ADMIN</span></td><td>Pending list, licence details, Approve / Reject with reason</td><td><code>GET /admin/pharmacies</code>, <code>PATCH .../verify|reject</code></td></tr>
+            <tr><td class="p">/admin/compliance</td><td><span class="pill ad">ADMIN</span></td><td>Tabs: expiring licences, missing hours, expired holds; Suspend</td><td><code>GET /admin/compliance/*</code></td></tr>
+            <tr><td class="p">/admin/search-index</td><td><span class="pill ad">ADMIN</span></td><td>Count of unsynced rows and a Rebuild button</td><td><code>POST /admin/search-index/rebuild</code></td></tr>
+            <tr><td class="p">*</td><td><span class="pill pub">public</span></td><td>404 page with a link back to search</td><td>&mdash;</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4 -->
+  <div class="section" id="s4">
+    <div class="sechead">4 · Layouts and guards: how a protected page decides to render</div>
+    <p class="secintro">Each wrapper does one job, in this order, from the outside in.</p>
+    <div class="grid">
+      <div class="box blue"><b>RootLayout</b><span>header, offline banner, toaster, <code>&lt;Outlet/&gt;</code>; wraps everything in a route error boundary</span></div>
+      <div class="box orange"><b>RequireAuth</b><span>while AuthContext is restoring the session: spinner; no user: <code>&lt;Navigate to="/login" state={from}/&gt;</code></span></div>
+      <div class="box orange"><b>RequireRole</b><span>role not in the allowed list: 403 page, never a blank screen</span></div>
+      <div class="box blue"><b>Suspense + React.lazy</b><span>pharmacist and admin sections load as separate chunks only for those roles</span></div>
+    </div>
+<pre class="code" style="margin:0 16px 16px"><code><span class="c">// app/router.tsx</span>
+const PharmacistArea = lazy(() =&gt; import('../features/pharmacist/PharmacistArea'));
+const AdminArea      = lazy(() =&gt; import('../features/admin/AdminArea'));
+
+export const router = createBrowserRouter([{
+  element: &lt;RootLayout /&gt;, errorElement: &lt;RouteError /&gt;,
+  children: [
+    { path: '/',             element: &lt;SearchPage /&gt; },
+    { path: '/pharmacy/:id', element: &lt;PharmacyDetailPage /&gt; },
+    { path: '/login',        element: &lt;LoginPage /&gt; },
+    { path: '/register',     element: &lt;RegisterPage /&gt; },
+    { element: &lt;RequireAuth /&gt;, children: [
+      { element: &lt;RequireRole roles={['PATIENT']} /&gt;,
+        children: [{ path: '/holds', element: &lt;MyHoldsPage /&gt; }] },
+      { element: &lt;RequireRole roles={['PHARMACIST']} /&gt;,
+        children: [{ path: '/pharmacist/*', element: &lt;Suspense fallback={&lt;PageSkeleton/&gt;}&gt;&lt;PharmacistArea/&gt;&lt;/Suspense&gt; }] },
+      { element: &lt;RequireRole roles={['ADMIN']} /&gt;,
+        children: [{ path: '/admin/*', element: &lt;Suspense fallback={&lt;PageSkeleton/&gt;}&gt;&lt;AdminArea/&gt;&lt;/Suspense&gt; }] },
+    ]},
+    { path: '*', element: &lt;NotFound /&gt; },
+  ],
+}]);</code></pre>
+  </div>
+
+  <!-- 5 -->
+  <div class="section" id="s5">
+    <div class="sechead">5 · Screens: what each page is made of</div>
+    <p class="secintro">Container pages own the data; the pieces inside only take props.</p>
+    <div class="grid g3">
+      <div class="box red"><b>SearchPage</b><span>reads <code>?medicine</code> and <code>?area</code> from the URL</span>
+        <ul><li>SearchBar with suggestions, debounced 300 ms</li><li>LocationPicker: "Use my location" or area list</li><li>ResultsList: skeleton / error / empty / cards</li><li>AlternativesList when nothing is found</li></ul></div>
+      <div class="box blue"><b>ResultCard</b><span>one pharmacy, all from props</span>
+        <ul><li>name, distance "1.2 km", OpenNowTag</li><li>StockBadge CONFIRMED / STALE with "updated 20 min ago"</li><li>price, prescription tag</li><li>HoldButton, DirectionsLink, phone number</li></ul></div>
+      <div class="box orange"><b>MyHoldsPage</b><span>patient's holds, newest first</span>
+        <ul><li>HoldCard with mm:ss countdown</li><li>status chip ACTIVE / COLLECTED / CANCELLED / EXPIRED</li><li>Cancel with an in-page confirm step</li><li>pharmacy address and Directions</li></ul></div>
+      <div class="box blue"><b>Pharmacist area</b><span>tabs under one layout</span>
+        <ul><li>Onboarding form, then status banner</li><li>StockTable: inline edit, add medicine search</li><li>HoursEditor: 7 rows, 24x7 switch, past-midnight hint</li><li>IncomingHolds: Mark collected</li></ul></div>
+      <div class="box blue"><b>Admin area</b><span>tabs under one layout</span>
+        <ul><li>VerificationQueue: licence details, Approve, Reject + reason</li><li>ComplianceTabs: three tables from the SQL reports</li><li>Suspend / Reinstate with reason</li><li>SearchIndex: unsynced count, Rebuild</li></ul></div>
+      <div class="box blue"><b>Auth pages</b><span>short forms, big inputs</span>
+        <ul><li>Login: email, password, show/hide</li><li>Register: role picker PATIENT / PHARMACIST</li><li>server errors shown on the field they belong to</li><li>after login: back to where you were, e.g. the Hold you tapped</li></ul></div>
+    </div>
+  </div>
+
+  <!-- 6 -->
+  <div class="section" id="s6">
+    <div class="sechead">6 · State: four kinds, kept in four places</div>
+    <p class="secintro">The most common React mistake is putting API data into useState or a global store. Each kind of state has a different lifetime, so each gets its own tool.</p>
+    <div class="grid">
+      <div class="box orange"><b>Server state</b><span>came from the API and can go stale</span><ul><li>TanStack Query cache</li><li>search results, holds, stock, pending list</li></ul></div>
+      <div class="box orange"><b>Auth state</b><span>who is logged in</span><ul><li>AuthContext + useReducer</li><li>user, accessToken, status</li><li>LOGIN, TOKEN_REFRESHED, LOGOUT</li></ul></div>
+      <div class="box blue"><b>URL state</b><span>should survive reload and be shareable</span><ul><li>useSearchParams</li><li>?medicine=, ?area=, admin tab</li></ul></div>
+      <div class="box blue"><b>UI state</b><span>lives only on this screen</span><ul><li>useState</li><li>modal open, inline edit row, show password</li></ul></div>
+    </div>
+    <div class="pad" style="padding-top:0">
+      <div class="tw">
+        <table>
+          <thead><tr><th>Query key</th><th>Endpoint</th><th>staleTime</th><th>Refetch</th><th>Invalidated by</th></tr></thead>
+          <tbody>
+            <tr><td><code>['search', medicine, lat, lng]</code></td><td>GET /search</td><td>30 s</td><td>every 60 s + on window focus</td><td>place hold, cancel hold</td></tr>
+            <tr><td><code>['holds', 'me']</code></td><td>GET /holds/me</td><td>0</td><td>on focus; when a countdown hits 0</td><td>place hold, cancel hold</td></tr>
+            <tr><td><code>['pharmacy', id]</code></td><td>GET /pharmacies/:id/public</td><td>60 s</td><td>on focus</td><td>&mdash;</td></tr>
+            <tr><td><code>['mine']</code>, <code>['stock', id]</code></td><td>GET /pharmacies/mine, /stock</td><td>0</td><td>on focus</td><td>stock edit, add medicine</td></tr>
+            <tr><td><code>['incoming', id]</code></td><td>GET /pharmacies/:id/holds</td><td>0</td><td>every 30 s</td><td>mark collected</td></tr>
+            <tr><td><code>['admin', 'pharmacies', status]</code></td><td>GET /admin/pharmacies</td><td>0</td><td>on focus</td><td>verify, reject, suspend, reinstate</td></tr>
+            <tr><td><code>['areas']</code></td><td>GET /search/areas</td><td>Infinity</td><td>never</td><td>&mdash;</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="note"><b>Access token lives in memory only</b>, inside AuthContext. On a page reload the app calls <code>POST /auth/refresh</code> once; the browser sends the httpOnly cookie, and the user is back without typing anything. Logout clears the context and the whole query cache so no one else's data stays on screen.</div>
+  </div>
+
+  <!-- 7 -->
+  <div class="section" id="s7">
+    <div class="sechead">7 · Custom hooks: components never call fetch</div>
+    <p class="secintro">Every data call and every browser API is wrapped in a hook, so components stay small and the logic can be tested without rendering anything.</p>
+    <div class="pad">
+      <div class="tw">
+        <table>
+          <thead><tr><th>Hook</th><th>Does</th><th>Returns</th></tr></thead>
+          <tbody>
+            <tr><td><code>useAuth()</code></td><td>reads AuthContext; exposes login, logout, register</td><td>user, role, status, login(), logout()</td></tr>
+            <tr><td><code>useSearch(medicine, loc)</code></td><td>useQuery for GET /search; disabled until both are set</td><td>data, isLoading, isError, isFetching, refetch</td></tr>
+            <tr><td><code>useMedicineSuggest(q)</code></td><td>debounced suggestions, only after 2 characters</td><td>suggestions[]</td></tr>
+            <tr><td><code>usePlaceHold()</code></td><td>useMutation for POST /holds; invalidates search + holds</td><td>mutate, isPending, error</td></tr>
+            <tr><td><code>useCancelHold()</code></td><td>useMutation, optimistic status change, rolls back on error</td><td>mutate, isPending</td></tr>
+            <tr><td><code>useGeolocation()</code></td><td>navigator.geolocation once, 8 s timeout</td><td>coords, status: idle / asking / ok / denied / timeout</td></tr>
+            <tr><td><code>useDebounce(value, 300)</code></td><td>delays a changing value</td><td>debounced value</td></tr>
+            <tr><td><code>useCountdown(expiresAt)</code></td><td>ticks every second with setInterval, cleans up on unmount</td><td>msLeft, label "12:48", isExpired</td></tr>
+            <tr><td><code>useOnline()</code></td><td>listens to online / offline events</td><td>isOnline</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8 -->
+  <div class="section" id="s8">
+    <div class="sechead">8 · API client: one place for tokens, refresh and errors</div>
+    <p class="secintro">Every request goes through <code>apiFetch</code>. It adds the token, turns error bodies into one ApiError type, and on a 401 runs a single refresh that every waiting request shares.</p>
+    <div class="grid">
+      <div class="box orange"><b>1. Build the request</b><span>base <code>/api/v1</code>, JSON headers, <code>credentials: 'include'</code>, Bearer token if logged in</span></div>
+      <div class="box orange"><b>2. Got 401?</b><span>start one refresh (or join the one already running), then retry the request once</span></div>
+      <div class="box red"><b>3. Refresh failed</b><span>dispatch LOGOUT, clear the cache, send to /login with the current page saved</span></div>
+      <div class="box blue"><b>4. Other errors</b><span>throw <code>ApiError(status, message, details)</code>; the component decides what to show</span></div>
+    </div>
+<pre class="code" style="margin:0 16px 16px"><code><span class="c">// api/client.ts</span>
+let refreshing: Promise&lt;string | null&gt; | null = null;   <span class="c">// shared by every 401</span>
+
+async function refreshOnce() {
+  refreshing ??= fetch('/api/v1/auth/refresh', { method: 'POST', credentials: 'include' })
+    .then(r =&gt; (r.ok ? r.json() : null))
+    .then(body =&gt; { const t = body?.accessToken ?? null; auth.setToken(t); return t; })
+    .finally(() =&gt; { refreshing = null; });
+  return refreshing;
+}
+
+export async function apiFetch&lt;T&gt;(path: string, init: RequestInit = {}, retried = false): Promise&lt;T&gt; {
+  const res = await fetch('/api/v1' + path, {
+    ...init, credentials: 'include',
+    headers: { 'Content-Type': 'application/json',
+               ...(auth.token ? { Authorization: `Bearer ${auth.token}` } : {}),
+               ...init.headers },
+  });
+  if (res.status === 401 &amp;&amp; !retried &amp;&amp; !path.startsWith('/auth/')) {
+    const token = await refreshOnce();
+    if (token) return apiFetch&lt;T&gt;(path, init, true);
+    auth.logout();                                        <span class="c">// clears cache, goes to /login</span>
+  }
+  if (!res.ok) {
+    const body = await res.json().catch(() =&gt; ({}));
+    throw new ApiError(res.status, body.error?.message ?? 'Something went wrong', body.error?.details);
+  }
+  return res.status === 204 ? (undefined as T) : res.json();
+}</code></pre>
+  </div>
+
+  <!-- 9 -->
+  <div class="section" id="s9">
+    <div class="sechead">9 · Forms and validation</div>
+    <p class="secintro">React Hook Form keeps typing fast; Zod checks the same rules the API checks, so most mistakes are caught before a request is sent. The API still validates everything.</p>
+    <div class="split">
+<pre class="code"><code><span class="c">// lib/schemas.ts</span>
+export const onboardingSchema = z.object({
+  name:          z.string().min(3),
+  address:       z.string().min(10),
+  area:          z.string(),
+  lat:           z.number().min(-90).max(90),
+  lng:           z.number().min(-180).max(180),
+  phone:         z.string().regex(/^[6-9]\d{9}$/, 'Enter a 10-digit mobile number'),
+  licenseNumber: z.string().min(5),
+  issueDate:     z.coerce.date(),
+  expiryDate:    z.coerce.date(),
+}).refine(d =&gt; d.expiryDate &gt; new Date(),
+          { path: ['expiryDate'], message: 'Licence has already expired' });</code></pre>
+      <div class="grid g2" style="padding:0">
+        <div class="box blue"><b>Client check</b><span>errors under each field as you leave it; submit disabled while sending</span></div>
+        <div class="box orange"><b>Server 400</b><span><code>details</code> field errors are mapped back with <code>setError(field)</code></span></div>
+        <div class="box orange"><b>Server 409</b><span>e.g. email already registered: shown on the email field</span></div>
+        <div class="box red"><b>Never lose input</b><span>a failed submit keeps every value; nothing is cleared on error</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 10 -->
+  <div class="section" id="s10">
+    <div class="sechead">10 · Every screen has six states, not one</div>
+    <p class="secintro">A blank screen in an emergency reads as "the app is broken". Each data view designs all six.</p>
+    <div class="grid g3">
+      <div class="box blue"><b>Loading</b><span>three card-shaped skeletons, never a lone spinner on the search page</span></div>
+      <div class="box blue"><b>Refreshing</b><span>old results stay visible with a thin "updating" bar (isFetching)</span></div>
+      <div class="box orange"><b>Empty</b><span>"No open pharmacy has this within 5 km" + widen to 10 km + same-salt alternatives</span></div>
+      <div class="box red"><b>Error</b><span>plain message from ApiError + Retry; 5xx never shows raw text</span></div>
+      <div class="box orange"><b>Stale</b><span>STALE badge: "stock last updated 9 h ago, call before you go" with the phone number</span></div>
+      <div class="box red"><b>Offline</b><span>banner from useOnline; last results stay on screen, Hold disabled</span></div>
+    </div>
+  </div>
+
+  <!-- 11 -->
+  <div class="section" id="s11">
+    <div class="sechead">11 · Emergency UX and accessibility</div>
+    <p class="secintro">Designed for one thumb, a slow phone, bad light and a stressed person.</p>
+    <div class="grid">
+      <div class="box red"><b>Search first</b><span>the home page is the search box, focused on load; no splash, no login wall</span></div>
+      <div class="box red"><b>Big targets</b><span>every button at least 44 x 44 px; Hold and Directions full-width on phones</span></div>
+      <div class="box red"><b>Contrast</b><span>text at least 4.5:1; badges use words as well as colour (CONFIRMED / STALE)</span></div>
+      <div class="box blue"><b>Keyboard + screen reader</b><span>visible focus ring, labels on every input, results list announced with aria-live</span></div>
+      <div class="box blue"><b>Location fallback</b><span>if location is denied, pick an area from the list; the search still works</span></div>
+      <div class="box blue"><b>Directions</b><span>a Google Maps link with the pharmacy's lat,lng, no API key; phone number shown as text</span></div>
+    </div>
+  </div>
+
+  <!-- 12 -->
+  <div class="section" id="s12">
+    <div class="sechead">12 · Performance</div>
+    <p class="secintro">The number that matters is time from opening the app to the first useful result on a mid-range phone on 4G.</p>
+    <div class="grid">
+      <div class="box green"><b>Split by role</b><span>pharmacist and admin code never downloads for patients (React.lazy)</span></div>
+      <div class="box blue"><b>Debounce</b><span>suggestions wait 300 ms after typing stops</span></div>
+      <div class="box blue"><b>Memoised cards</b><span>ResultCard wrapped in React.memo; handlers from useCallback so a 60 s refetch doesn't redraw every card</span></div>
+      <div class="box orange"><b>Prefetch</b><span>pressing a card prefetches <code>['pharmacy', id]</code> before navigation</span></div>
+      <div class="box green"><b>No images</b><span>icons as inline SVG; one system font stack, no web font download</span></div>
+      <div class="box orange"><b>Paged results</b><span>20 at a time with "Show more", matching the API's limit</span></div>
+    </div>
+    <div class="subnotes">
+      <div class="subnote">target: first result under 3 s on "Fast 4G" in Chrome DevTools</div>
+      <div class="subnote">initial JS for the patient path under 200 KB gzipped</div>
+      <div class="subnote">Lighthouse mobile: performance and accessibility at least 90</div>
+    </div>
+  </div>
+
+  <!-- 13 -->
+  <div class="section" id="s13">
+    <div class="sechead">13 · Build, environment and deploy</div>
+    <p class="secintro">The frontend and API look like one site to the browser, so the refresh cookie is first-party and there is no CORS to configure.</p>
+    <div class="split">
+<pre class="code"><code><span class="c">// vite.config.ts: dev only</span>
+server: { proxy: { '/api': 'http://localhost:4000' } }
+
+<span class="c">// vercel.json: production</span>
+{
+  "rewrites": [
+    { "source": "/api/:path*",
+      "destination": "https://velora-api.herokuapp.com/api/:path*" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
+
+<span class="c">// package.json scripts</span>
+"dev": "vite", "build": "tsc -b &amp;&amp; vite build",
+"lint": "eslint .", "test": "vitest"</code></pre>
+      <div class="grid g2" style="padding:0">
+        <div class="box green"><b>Vercel</b><span>builds on every push to main; preview link for every branch</span></div>
+        <div class="box green"><b>ESLint + Prettier</b><span>react-hooks rules on, so missing effect dependencies are caught</span></div>
+        <div class="box green"><b>TypeScript strict</b><span>API response types in api/types.ts; build fails on type errors</span></div>
+        <div class="box orange"><b>SPA fallback</b><span>the last rewrite sends every page path to index.html so reloading /holds works</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 14 -->
+  <div class="section" id="s14">
+    <div class="sechead">14 · Testing: the parts that would hurt if they broke</div>
+    <p class="secintro">Vitest + React Testing Library. Test behaviour a user would notice, not implementation details.</p>
+    <div class="grid g3">
+      <div class="box green"><b>api/client.ts</b><span>two 401s at once trigger exactly one refresh; a failed refresh logs out</span></div>
+      <div class="box green"><b>RequireRole</b><span>PATIENT on /admin sees the 403 page; logged-out user is sent to /login and back</span></div>
+      <div class="box green"><b>useCountdown</b><span>with fake timers: label counts down, isExpired flips at 0, interval cleared on unmount</span></div>
+      <div class="box green"><b>HoldButton</b><span>disabled while pending; 409 shows "Just missed it" and refetches results</span></div>
+      <div class="box green"><b>SearchPage</b><span>loading, empty and error states each render their own UI</span></div>
+      <div class="box green"><b>Forms</b><span>expired licence date is rejected before submit; server 400 lands on the right field</span></div>
+    </div>
+  </div>
+
+  <footer>
+    Browser → React Router → page → custom hook → TanStack Query cache → apiFetch → /api/v1 (Vercel rewrite) → Express.<br>
+    Same REST contract as the backend: no GraphQL, no WebSockets, no SSR. Role checks here are convenience; the backend's RBAC middleware is the real boundary.
+  </footer>
+
+</div>
+
+</body>
+</html>
