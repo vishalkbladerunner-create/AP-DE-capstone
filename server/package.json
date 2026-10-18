@@ -9,9 +9,11 @@
     "test": "node tests/run.js"
   },
   "dependencies": {
+    "@prisma/client": "^6.19.3",
     "express": "^5.3.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "nodemon": "^3.1.14",
+    "prisma": "^6.19.3"
   }
 }

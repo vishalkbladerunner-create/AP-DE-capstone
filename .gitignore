@@ -4,6 +4,7 @@ docs/.DS_Store
 # Local environment and dependencies
 .env
 .env.*
+!.env.example
 node_modules/
 
 # Temporary syllabus text extraction
