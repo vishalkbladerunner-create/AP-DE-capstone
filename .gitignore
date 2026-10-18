@@ -1,2 +1,15 @@
 .DS_Store
 docs/.DS_Store
+
+# Local environment and dependencies
+.env
+.env.*
+!.env.example
+node_modules/
+
+# Temporary syllabus text extraction
+.syllabus-text/
+
+# Local-only agent instructions — never commit or push
+AGENTS.md
+agents.md

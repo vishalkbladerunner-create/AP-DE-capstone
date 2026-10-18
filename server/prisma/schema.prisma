@@ -1,0 +1,12 @@
+// Prisma schema for the Velora API.
+// Models are added in commit #6; this commit only wires the connection.
+// Docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
